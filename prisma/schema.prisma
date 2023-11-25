@@ -1,11 +1,295 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
   url      = env("DATABASE_URL")
+}
+
+model cat_colonias {
+  id             BigInt           @id @default(autoincrement()) @db.UnsignedBigInt
+  id_municipio   BigInt           @db.UnsignedBigInt
+  created_at     DateTime?        @db.Timestamp(0)
+  updated_at     DateTime?        @db.Timestamp(0)
+  nombre         String           @db.VarChar(255)
+  cp             Int
+  cat_municipios cat_municipios   @relation(fields: [id_municipio], references: [id], onUpdate: Restrict, map: "cat_colonias_id_municipio_foreign")
+  cmp_domicilios cmp_domicilios[]
+
+  @@index([id_municipio], map: "cat_colonias_id_municipio_foreign")
+}
+
+model cat_especialidades_medicas {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  nombre     String    @db.VarChar(250)
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+  deleted_at DateTime? @db.Timestamp(0)
+}
+
+model cat_estados {
+  id             BigInt           @id @default(autoincrement()) @db.UnsignedBigInt
+  nombre         String           @db.VarChar(250)
+  clave          String           @db.VarChar(250)
+  abreviatura    String           @db.VarChar(250)
+  renapo         String           @db.VarChar(250)
+  created_at     DateTime?        @db.Timestamp(0)
+  updated_at     DateTime?        @db.Timestamp(0)
+  deleted_at     DateTime?        @db.Timestamp(0)
+  cat_municipios cat_municipios[]
+  cmp_domicilios cmp_domicilios[]
+  cmp_personas   cmp_personas[]
+}
+
+model cat_localidades {
+  id             BigInt         @id @default(autoincrement()) @db.UnsignedBigInt
+  nombre         String         @db.VarChar(250)
+  id_municipio   BigInt         @db.UnsignedBigInt
+  created_at     DateTime?      @db.Timestamp(0)
+  updated_at     DateTime?      @db.Timestamp(0)
+  deleted_at     DateTime?      @db.Timestamp(0)
+  cat_municipios cat_municipios @relation(fields: [id_municipio], references: [id], onUpdate: Restrict, map: "cat_localidades_id_municipio_foreign")
+
+  @@index([id_municipio], map: "cat_localidades_id_municipio_foreign")
+}
+
+model cat_municipios {
+  id              BigInt            @id @default(autoincrement()) @db.UnsignedBigInt
+  nombre          String            @db.VarChar(250)
+  id_estado       BigInt            @db.UnsignedBigInt
+  created_at      DateTime?         @db.Timestamp(0)
+  updated_at      DateTime?         @db.Timestamp(0)
+  deleted_at      DateTime?         @db.Timestamp(0)
+  cat_colonias    cat_colonias[]
+  cat_localidades cat_localidades[]
+  cat_estados     cat_estados       @relation(fields: [id_estado], references: [id], onUpdate: Restrict, map: "cat_municipios_id_estado_foreign")
+  cmp_domicilios  cmp_domicilios[]
+
+  @@index([id_estado], map: "cat_municipios_id_estado_foreign")
+}
+
+model cat_sexos {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  nombre     String    @db.VarChar(250)
+  cve        String    @db.Char(1)
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+  deleted_at DateTime? @db.Timestamp(0)
+}
+
+model cat_tipos_empleado {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  nombre     String    @db.VarChar(250)
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+}
+
+model cmp_domicilios {
+  id                    BigInt                  @id @default(autoincrement()) @db.UnsignedBigInt
+  calle                 String                  @db.VarChar(250)
+  num_exterior          String                  @db.VarChar(250)
+  num_interior          String                  @db.VarChar(250)
+  referencias           String                  @db.VarChar(250)
+  id_estado             BigInt                  @db.UnsignedBigInt
+  created_at            DateTime?               @db.Timestamp(0)
+  updated_at            DateTime?               @db.Timestamp(0)
+  deleted_at            DateTime?               @db.Timestamp(0)
+  id_colonia            BigInt                  @db.UnsignedBigInt
+  id_municipio          BigInt                  @db.UnsignedBigInt
+  cat_colonias          cat_colonias            @relation(fields: [id_colonia], references: [id], onUpdate: Restrict, map: "cmp_domicilios_id_colonia_foreign")
+  cat_estados           cat_estados             @relation(fields: [id_estado], references: [id], onUpdate: Restrict, map: "cmp_domicilios_id_estado_foreign")
+  cat_municipios        cat_municipios          @relation(fields: [id_municipio], references: [id], onUpdate: Restrict, map: "cmp_domicilios_id_municipio_foreign")
+  pvt_domicilio_persona pvt_domicilio_persona[]
+
+  @@index([id_colonia], map: "cmp_domicilios_id_colonia_foreign")
+  @@index([id_estado], map: "cmp_domicilios_id_estado_foreign")
+  @@index([id_municipio], map: "cmp_domicilios_id_municipio_foreign")
+}
+
+model cmp_personas {
+  id                    BigInt                  @id @default(autoincrement()) @db.UnsignedBigInt
+  primer_apellido       String                  @db.VarChar(250)
+  segundo_apellido      String                  @db.VarChar(250)
+  nombres               String                  @db.VarChar(250)
+  fecha_nacimiento      DateTime                @db.Date
+  sexo                  String                  @db.VarChar(10)
+  id_estado             BigInt                  @db.UnsignedBigInt
+  created_at            DateTime?               @db.Timestamp(0)
+  updated_at            DateTime?               @db.Timestamp(0)
+  deleted_at            DateTime?               @db.Timestamp(0)
+  cat_estados           cat_estados             @relation(fields: [id_estado], references: [id], onUpdate: Restrict, map: "cmp_personas_id_estado_foreign")
+  // hpz_pacientes         hpz_pacientes[]
+  pvt_domicilio_persona pvt_domicilio_persona[]
+
+  @@index([id_estado], map: "cmp_personas_id_estado_foreign")
+}
+
+// model hpz_antropometricas {
+//   id           BigInt       @id @default(autoincrement()) @db.UnsignedBigInt
+//   peso         Decimal      @db.Decimal(10, 2)
+//   talla        Decimal      @db.Decimal(10, 2)
+//   id_ingreso   BigInt       @db.UnsignedBigInt
+//   created_at   DateTime?    @db.Timestamp(0)
+//   updated_at   DateTime?    @db.Timestamp(0)
+//   hpz_ingresos hpz_ingresos @relation(fields: [id_ingreso], references: [id], onUpdate: Restrict, map: "hpz_antropometricas_id_ingreso_foreign")
+//   hpz_notas    hpz_notas[]
+
+//   @@index([id_ingreso], map: "hpz_antropometricas_id_ingreso_foreign")
+// }
+
+// model hpz_diagnosticos {
+//   id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+//   nombre     String    @db.VarChar(250)
+//   created_at DateTime? @db.Timestamp(0)
+//   updated_at DateTime? @db.Timestamp(0)
+//   deleted_at DateTime? @db.Timestamp(0)
+// }
+
+// model hpz_ingresos {
+//   id                  BigInt                @id @default(autoincrement()) @db.UnsignedBigInt
+//   motivo_ingreso      String                @db.VarChar(250)
+//   fecha_ingreso       DateTime              @db.DateTime(0)
+//   motivo_egreso       String?               @db.VarChar(250)
+//   fecha_alta          DateTime?             @db.DateTime(0)
+//   fecha_egreso        DateTime?             @db.DateTime(0)
+//   id_paciente         BigInt                @db.UnsignedBigInt
+//   created_at          DateTime?             @db.Timestamp(0)
+//   updated_at          DateTime?             @db.Timestamp(0)
+//   deleted_at          DateTime?             @db.Timestamp(0)
+//   hpz_antropometricas hpz_antropometricas[]
+//   hpz_pacientes       hpz_pacientes         @relation(fields: [id_paciente], references: [id], onUpdate: Restrict, map: "hpz_ingresos_id_paciente_foreign")
+//   hpz_notas           hpz_notas[]
+//   hpz_signos_vitales  hpz_signos_vitales[]
+
+//   @@index([id_paciente], map: "hpz_ingresos_id_paciente_foreign")
+// }
+
+// model hpz_notas {
+//   id                  BigInt              @id @default(autoincrement()) @db.UnsignedBigInt
+//   edad                String              @db.VarChar(255)
+//   resumen_clinico     String              @db.Text
+//   tratamiento         String              @db.Text
+//   id_ingreso          BigInt              @db.UnsignedBigInt
+//   id_signos           BigInt              @db.UnsignedBigInt
+//   id_antropometricas  BigInt              @db.UnsignedBigInt
+//   created_at          DateTime?           @db.Timestamp(0)
+//   updated_at          DateTime?           @db.Timestamp(0)
+//   deleted_at          DateTime?           @db.Timestamp(0)
+//   hpz_antropometricas hpz_antropometricas @relation(fields: [id_antropometricas], references: [id], onUpdate: Restrict, map: "hpz_notas_id_antropometricas_foreign")
+//   hpz_ingresos        hpz_ingresos        @relation(fields: [id_ingreso], references: [id], onUpdate: Restrict, map: "hpz_notas_id_ingreso_foreign")
+//   hpz_signos_vitales  hpz_signos_vitales  @relation(fields: [id_signos], references: [id], onUpdate: Restrict, map: "hpz_notas_id_signos_foreign")
+
+//   @@index([id_antropometricas], map: "hpz_notas_id_antropometricas_foreign")
+//   @@index([id_ingreso], map: "hpz_notas_id_ingreso_foreign")
+//   @@index([id_signos], map: "hpz_notas_id_signos_foreign")
+// }
+
+// model hpz_pacientes {
+//   id           BigInt         @id @default(autoincrement()) @db.UnsignedBigInt
+//   expediente   String         @db.VarChar(250)
+//   id_persona   BigInt         @db.UnsignedBigInt
+//   created_at   DateTime?      @db.Timestamp(0)
+//   updated_at   DateTime?      @db.Timestamp(0)
+//   deleted_at   DateTime?      @db.Timestamp(0)
+//   id_medico    Int            @default(1)
+//   hpz_ingresos hpz_ingresos[]
+//   cmp_personas cmp_personas   @relation(fields: [id_persona], references: [id], onUpdate: Restrict, map: "hpz_pacientes_id_persona_foreign")
+
+//   @@index([id_persona], map: "hpz_pacientes_id_persona_foreign")
+// }
+
+// model hpz_signos_vitales {
+//   id                          BigInt       @id @default(autoincrement()) @db.UnsignedBigInt
+//   tension_arterial_sistolica  Int?
+//   tension_arterial_diastolica Int?
+//   frecuencia_cardiaca         Int?
+//   frecuencia_respiratoria     Int?
+//   temperatura                 Decimal?     @db.Decimal(10, 2)
+//   uresis                      Decimal?     @db.Decimal(10, 2)
+//   glucemia_capilar            Int?
+//   saturacion_parcial_oxigeno  Int?
+//   id_ingreso                  BigInt       @db.UnsignedBigInt
+//   created_at                  DateTime?    @db.Timestamp(0)
+//   updated_at                  DateTime?    @db.Timestamp(0)
+//   deleted_at                  DateTime?    @db.Timestamp(0)
+//   hpz_notas                   hpz_notas[]
+//   hpz_ingresos                hpz_ingresos @relation(fields: [id_ingreso], references: [id], onUpdate: Restrict, map: "hpz_signos_vitales_id_ingreso_foreign")
+
+//   @@index([id_ingreso], map: "hpz_signos_vitales_id_ingreso_foreign")
+// }
+
+model permissions {
+  id                    BigInt                  @id @default(autoincrement()) @db.UnsignedBigInt
+  name                  String                  @db.VarChar(255)
+  guard_name            String                  @db.VarChar(255)
+  created_at            DateTime?               @db.Timestamp(0)
+  updated_at            DateTime?               @db.Timestamp(0)
+  role_has_permissions  role_has_permissions[]
+
+  @@unique([name, guard_name], map: "permissions_name_guard_name_unique")
+}
+
+model pvt_domicilio_persona {
+  id             BigInt         @id @default(autoincrement()) @db.UnsignedBigInt
+  id_persona     BigInt         @db.UnsignedBigInt
+  id_domicilio   BigInt         @db.UnsignedBigInt
+  created_at     DateTime?      @db.Timestamp(0)
+  updated_at     DateTime?      @db.Timestamp(0)
+  deleted_at     DateTime?      @db.Timestamp(0)
+  cmp_domicilios cmp_domicilios @relation(fields: [id_domicilio], references: [id], onUpdate: Restrict, map: "pvt_domicilio_persona_id_domicilio_foreign")
+  cmp_personas   cmp_personas   @relation(fields: [id_persona], references: [id], onUpdate: Restrict, map: "pvt_domicilio_persona_id_persona_foreign")
+
+  @@index([id_domicilio], map: "pvt_domicilio_persona_id_domicilio_foreign")
+  @@index([id_persona], map: "pvt_domicilio_persona_id_persona_foreign")
+}
+
+model pvt_ingresos_diagnosticos {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+}
+
+model pvt_ingresos_signos {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+}
+
+model pvt_notas_diagnosticos {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+}
+
+model role_has_permissions {
+  permission_id BigInt      @db.UnsignedBigInt
+  role_id       BigInt      @db.UnsignedBigInt
+  permissions   permissions @relation(fields: [permission_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "role_has_permissions_permission_id_foreign")
+  roles         roles       @relation(fields: [role_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "role_has_permissions_role_id_foreign")
+
+  @@id([permission_id, role_id])
+  @@index([role_id], map: "role_has_permissions_role_id_foreign")
+}
+
+model roles {
+  id                   BigInt                 @id @default(autoincrement()) @db.UnsignedBigInt
+  name                 String                 @db.VarChar(255)
+  guard_name           String                 @db.VarChar(255)
+  created_at           DateTime?              @db.Timestamp(0)
+  updated_at           DateTime?              @db.Timestamp(0)
+  role_has_permissions role_has_permissions[]
+
+  @@unique([name, guard_name], map: "roles_name_guard_name_unique")
+}
+
+model users {
+  id                BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  name              String    @db.VarChar(255)
+  email             String    @unique(map: "users_email_unique") @db.VarChar(255)
+  email_verified_at DateTime? @db.Timestamp(0)
+  password          String    @db.VarChar(255)
+  created_at        DateTime? @db.Timestamp(0)
+  updated_at        DateTime? @db.Timestamp(0)
+  origin            String    @default("native") @db.VarChar(255)
 }
